@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./config/router"; // Ensure this is the correct path
+import "./style.css";
 
 const app = createApp(App);
 app.use(createPinia()); // Register Pinia
