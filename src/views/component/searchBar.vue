@@ -8,7 +8,10 @@
       <!-- Top Row: Brand + Search + Profile -->
       <div class="flex items-center justify-between w-full max-w-4xl mx-auto">
         <!-- Brand -->
-        <router-link to="/dashboard" class="text-2xl font-bold text-white font-serif">
+        <router-link
+          to="/dashboard"
+          class="text-2xl font-bold text-white font-serif"
+        >
           CookSphere
         </router-link>
 
@@ -36,13 +39,13 @@
           </router-link>
 
           <!-- Profile -->
-          <button class="flex items-center focus:outline-none">
+          <router-link to="/profile">
             <div
               class="w-6 h-6 rounded-full bg-rose-500 flex items-center justify-center text-white hover:bg-rose-600 transition-colors"
             >
               <span class="font-medium">U</span>
             </div>
-          </button>
+          </router-link>
         </div>
       </div>
     </nav>

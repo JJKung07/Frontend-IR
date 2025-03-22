@@ -10,7 +10,12 @@ const routes = [
     component: () => import("../views/Dashboard.vue"),
     meta: { requiresAuth: true }
   },
-  { path: "/search", component: () => import("../views/search.vue") }
+  { path: "/search", component: () => import("../views/search.vue") },
+  {
+    path: '/profile',
+    component: () => import("../views/Profile.vue"),
+    meta: { requiresAuth: true }
+  }
 ];
 
 const router = createRouter({

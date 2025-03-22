@@ -69,23 +69,27 @@ onMounted(async () => {
 
         <div 
           v-else
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10"
         >
           <div 
             v-for="recipe in featuredRecipes"
             :key="recipe.id"
-            class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+            class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer mt-2"
             @click="openRecipe(recipe.id)"
           >
-            <div v-if="recipe.images.length" class="relative h-48">
+            <div v-if="recipe.images.length && recipe.images[0] !== 'character(0'" class="relative h-48">
               <img
                 :src="recipe.images[0]"
                 :alt="recipe.title"
                 class="w-full h-full object-cover"
               >
             </div>
-            <div v-else class="h-48 bg-gray-100 flex items-center justify-center">
-              <span class="text-gray-400">No image available</span>
+            <div v-else class="h-48 bg-gray-100 flex flex-col items-center justify-center">
+              <img 
+                src="../assets/noImg.jpg" 
+                class="w-32 h-32 mb-2 opacity-75"
+                alt="No image available"
+              >
             </div>
 
             <div class="p-6">
