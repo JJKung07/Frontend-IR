@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import api from '../config/api';
 import SearchBar from "./component/Searchbar.vue";
+import { RouterLink } from 'vue-router';
 
 const featuredRecipes = ref([]);
 const isLoading = ref(true);
@@ -16,7 +17,6 @@ onMounted(async () => {
       description: recipe.description,
       tags: recipe.tags || [],
       images: recipe.images || [],
-      // Add additional fields if needed
     }));
   } catch (err) {
     error.value = err.response?.data?.error || 'Failed to load recipes. Please try again later.';
@@ -64,14 +64,14 @@ onMounted(async () => {
         </div>
 
         <!-- Success State -->
-         
         <div 
           v-else
           class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          <div
+          <router-link 
             v-for="recipe in featuredRecipes"
             :key="recipe.id"
+            :to="{ name: 'RecipeDetail', params: { id: recipe.id }}"
             class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
           >
             <!-- Recipe Image -->
@@ -104,7 +104,7 @@ onMounted(async () => {
                 </span>
               </div>
             </div>
-          </div>
+          </router-link>
         </div>
       </div>
     </main>
@@ -130,5 +130,11 @@ onMounted(async () => {
   50% {
     opacity: .5;
   }
+}
+
+/* Remove default link styling */
+a {
+  color: inherit;
+  text-decoration: none;
 }
 </style>

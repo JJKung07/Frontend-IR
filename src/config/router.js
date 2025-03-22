@@ -10,7 +10,12 @@ const routes = [
     component: () => import("../views/Dashboard.vue"),
     meta: { requiresAuth: true }
   },
-  { path: "/search", component: () => import("../views/search.vue") }
+  { path: "/search", component: () => import("../views/search.vue") },
+  {
+    path: '/recipe/:id',
+    name: 'RecipeDetail',
+    component: () => import('../views/RecipeDetail.vue')
+  }
 ];
 
 const router = createRouter({
