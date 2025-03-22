@@ -213,88 +213,92 @@ onMounted(async () => {
                   </ol>
 
                   <!-- Bookmark Section -->
-                  <div class="mt-8 relative">
-                    <button
-                      @click="toggleDropdown"
-                      class="px-6 py-3 bg-green-500 text-black rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
-                    >
-                      📌 Bookmark This Recipe
-                      <svg
-                        class="w-4 h-4 transition-transform"
-                        :class="{ 'rotate-180': showDropdown }"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                  <div class="mt-8 text-center">
+                    <div class="inline-block relative">
+                      <button
+                        @click="toggleDropdown"
+                        class="px-6 py-3 bg-green-500 text-black rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
                       >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </button>
-
-                    <!-- Dropdown -->
-                    <div
-                      v-if="showDropdown"
-                      class="absolute top-full left-0 w-full mt-2 bg-white rounded-lg shadow-xl border border-gray-200 z-50"
-                    >
-                      <div class="p-4 space-y-4">
-                        <div class="space-y-2">
-                          <label class="block text-sm font-medium text-gray-700"
-                            >Select Folder</label
-                          >
-                          <select
-                            v-model="selectedFolderId"
-                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                          >
-                            <option value="" disabled>Choose a folder</option>
-                            <option
-                              v-for="folder in folders"
-                              :key="folder.id"
-                              :value="folder.id"
-                            >
-                              {{ folder.name }}
-                            </option>
-                          </select>
-                        </div>
-
-                        <div class="space-y-2">
-                          <label class="block text-sm font-medium text-gray-700"
-                            >Rating (optional)</label
-                          >
-                          <input
-                            v-model.number="rating"
-                            type="number"
-                            min="1"
-                            max="5"
-                            placeholder="1-5"
-                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                          />
-                        </div>
-
-                        <div class="flex justify-end gap-3">
-                          <button
-                            @click="showDropdown = false"
-                            class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            @click="bookmarkRecipe"
-                            class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-                          >
-                            Save
-                          </button>
-                        </div>
-
-                        <p
-                          v-if="bookmarkError"
-                          class="text-red-500 text-sm mt-2"
+                        📌 Bookmark This Recipe
+                        <svg
+                          class="w-4 h-4 transition-transform"
+                          :class="{ 'rotate-180': showDropdown }"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          {{ bookmarkError }}
-                        </p>
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </button>
+
+                      <!-- Centered Dropdown -->
+                      <div
+                        v-if="showDropdown"
+                        class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 z-50 min-w-[300px]"
+                      >
+                        <div class="p-4 space-y-4 mb-5">
+                          <div class="space-y-2">
+                            <label
+                              class="block text-sm font-medium text-gray-700"
+                              >Select Folder</label
+                            >
+                            <select
+                              v-model="selectedFolderId"
+                              class="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            >
+                              <option value="" disabled>Choose a folder</option>
+                              <option
+                                v-for="folder in folders"
+                                :key="folder.id"
+                                :value="folder.id"
+                              >
+                                {{ folder.name }}
+                              </option>
+                            </select>
+                          </div>
+
+                          <div class="space-y-2">
+                            <label
+                              class="block text-sm font-medium text-gray-700"
+                              >Rating (optional)</label
+                            >
+                            <input
+                              v-model.number="rating"
+                              type="number"
+                              min="1"
+                              max="5"
+                              placeholder="1-5"
+                              class="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            />
+                          </div>
+
+                          <div class="flex justify-end gap-3">
+                            <button
+                              @click="showDropdown = false"
+                              class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              @click="bookmarkRecipe"
+                              class="px-4 py-2 bg-green-500 text-black rounded-md hover:bg-green-600 transition-colors"
+                            >
+                              Save
+                            </button>
+                          </div>
+
+                          <p
+                            v-if="bookmarkError"
+                            class="text-red-500 text-sm mt-2"
+                          >
+                            {{ bookmarkError }}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>

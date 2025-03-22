@@ -3,11 +3,13 @@
 import { ref, onMounted } from "vue";
 import api from "../config/api";
 import SearchBar from "./component/Searchbar.vue";
+import { useAuthStore } from '../stores/auth'; // Import the auth store
 
 const folders = ref([]);
 const newFolderName = ref("");
 const bookmarks = ref([]);
 const error = ref("");
+const authStore = useAuthStore(); // Initialize the auth store
 
 const fetchFolders = async () => {
   try {
@@ -48,12 +50,41 @@ const updateFolder = async (folderId, newName) => {
   }
 };
 
+const renameFolder = async (folderId, currentName) => {
+  const newName = prompt('Enter new name:', currentName);
+  if (newName !== null && newName.trim() !== '') {
+    await updateFolder(folderId, newName.trim());
+  }
+};
+
 const fetchBookmarks = async () => {
   try {
     const { data } = await api.get("/user/bookmarks");
     bookmarks.value = data;
   } catch (err) {
     error.value = err.response?.data?.error || "Failed to load bookmarks.";
+  }
+};
+
+const updateBookmarkRating = async (folderId, recipeId, currentRating) => {
+  const newRating = prompt('Enter new rating (1-5):', currentRating);
+  if (newRating !== null && newRating >= 1 && newRating <= 5) {
+    try {
+      await api.put(`/user/bookmarks/${folderId}/${recipeId}`, { rating: Number(newRating) });
+      await fetchBookmarks();
+    } catch (err) {
+      error.value = err.response?.data?.error || "Failed to update rating.";
+    }
+  }
+};
+
+const removeBookmark = async (folderId, recipeId) => {
+  if (!confirm("Are you sure you want to remove this bookmark?")) return;
+  try {
+    await api.delete(`/user/bookmarks/${folderId}/${recipeId}`);
+    await fetchBookmarks();
+  } catch (err) {
+    error.value = err.response?.data?.error || "Failed to remove bookmark.";
   }
 };
 
@@ -104,9 +135,7 @@ onMounted(() => {
           <span>{{ folder.name }}</span>
           <div class="flex gap-2">
             <button
-              @click="
-                updateFolder(folder.id, prompt('Enter new name:', folder.name))
-              "
+              @click="renameFolder(folder.id, folder.name)"
               class="px-2 py-1 text-sm bg-yellow-500 text-black rounded"
             >
               Rename
@@ -139,23 +168,47 @@ onMounted(() => {
             <div
               v-for="bm in folder.bookmarks"
               :key="bm.recipeId"
-              class="flex items-center gap-4 p-2 bg-gray-50 rounded"
+              class="flex items-center justify-between p-2 bg-gray-50 rounded"
             >
-              <img
-                v-if="bm.image"
-                :src="bm.image"
-                class="w-16 h-16 object-cover rounded"
-              />
-              <div>
-                <p class="font-medium">{{ bm.recipeName }}</p>
-                <p v-if="bm.rating" class="text-yellow-500">
-                  ★ {{ bm.rating }}
-                </p>
+              <div class="flex items-center gap-4">
+                <img
+                  v-if="bm.image && bm.image !== 'character(0)'"
+                  :src="bm.image"
+                  class="w-16 h-16 object-cover rounded"
+                />
+                <div>
+                  <p class="font-medium">{{ bm.recipeName }}</p>
+                  <p v-if="bm.rating" class="text-yellow-500">
+                    ★ {{ bm.rating }}
+                  </p>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button
+                  @click="updateBookmarkRating(folder.folderId, bm.recipeId, bm.rating)"
+                  class="px-2 py-1 text-sm bg-yellow-500 text-black rounded"
+                >
+                <p class="text-sm">Edit Rating</p>
+                  
+                </button>
+                <button
+                  @click="removeBookmark(folder.folderId, bm.recipeId)"
+                  class="px-2 py-1 text-sm bg-red-500 text-black rounded"
+                >
+                <p class="text-sm">Remove</p>
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Logout Button -->
+    <div class="mt-8">
+      <button @click="authStore.logout" class="px-4 py-2 bg-red-500 text-black rounded">
+        Logout
+      </button>
     </div>
   </div>
 </template>
