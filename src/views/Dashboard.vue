@@ -2,11 +2,17 @@
 import { ref, onMounted } from 'vue';
 import api from '../config/api';
 import SearchBar from "./component/Searchbar.vue";
-import { RouterLink } from 'vue-router';
+import { useRouter } from 'vue-router';
+import RecipeDetailModal from './RecipeDetail.vue';
 
+const router = useRouter();
 const featuredRecipes = ref([]);
 const isLoading = ref(true);
 const error = ref(null);
+
+const openRecipe = (recipeId) => {
+  router.replace({ query: { recipe: recipeId } });
+};
 
 onMounted(async () => {
   try {
@@ -38,7 +44,6 @@ onMounted(async () => {
           What to make this week, as chosen by readers!
         </h1>
 
-        <!-- Loading State -->
         <div v-if="isLoading" class="text-center text-gray-600">
           <div class="animate-pulse space-y-6">
             <div 
@@ -49,7 +54,6 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- Error State -->
         <div 
           v-else-if="error"
           class="text-center p-6 bg-red-50 rounded-lg"
@@ -63,18 +67,16 @@ onMounted(async () => {
           </button>
         </div>
 
-        <!-- Success State -->
         <div 
           v-else
           class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          <router-link 
+          <div 
             v-for="recipe in featuredRecipes"
             :key="recipe.id"
-            :to="{ name: 'RecipeDetail', params: { id: recipe.id }}"
-            class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+            class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+            @click="openRecipe(recipe.id)"
           >
-            <!-- Recipe Image -->
             <div v-if="recipe.images.length" class="relative h-48">
               <img
                 :src="recipe.images[0]"
@@ -86,7 +88,6 @@ onMounted(async () => {
               <span class="text-gray-400">No image available</span>
             </div>
 
-            <!-- Recipe Content -->
             <div class="p-6">
               <h2 class="text-xl font-semibold text-gray-800 mb-2">
                 {{ recipe.title }}
@@ -104,8 +105,10 @@ onMounted(async () => {
                 </span>
               </div>
             </div>
-          </router-link>
+          </div>
         </div>
+
+        <RecipeDetailModal v-if="$route.query.recipe" />
       </div>
     </main>
   </div>
@@ -130,11 +133,5 @@ onMounted(async () => {
   50% {
     opacity: .5;
   }
-}
-
-/* Remove default link styling */
-a {
-  color: inherit;
-  text-decoration: none;
 }
 </style>
