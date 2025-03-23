@@ -12,7 +12,7 @@ const error = ref(null);
 // Bookmark related state
 const showDropdown = ref(false);
 const selectedFolderId = ref(null);
-const rating = ref(null);
+const rating = ref(1); // Default rating starts at 1
 const folders = ref([]);
 const bookmarkError = ref("");
 
@@ -85,12 +85,17 @@ const bookmarkRecipe = async () => {
     });
     showDropdown.value = false;
     selectedFolderId.value = null;
-    rating.value = null;
+    rating.value = 1; // Reset to 1 after bookmarking
     alert("Recipe bookmarked successfully!");
   } catch (err) {
     bookmarkError.value =
       err.response?.data?.error || "Failed to bookmark recipe.";
   }
+};
+
+// Star rating function
+const setRating = (value) => {
+  rating.value = value;
 };
 
 onMounted(async () => {
@@ -265,16 +270,23 @@ onMounted(async () => {
                           <div class="space-y-2">
                             <label
                               class="block text-sm font-medium text-gray-700"
-                              >Rating (optional)</label
+                              >Rating (1-5)</label
                             >
-                            <input
-                              v-model.number="rating"
-                              type="number"
-                              min="1"
-                              max="5"
-                              placeholder="1-5"
-                              class="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                            />
+                            <div class="flex gap-1">
+                              <span
+                                v-for="star in 5"
+                                :key="star"
+                                @click="setRating(star)"
+                                class="cursor-pointer text-2xl"
+                                :class="
+                                  star <= rating
+                                    ? 'text-yellow-400'
+                                    : 'text-gray-300'
+                                "
+                              >
+                                ★
+                              </span>
+                            </div>
                           </div>
 
                           <div class="flex justify-end gap-3">

@@ -14,7 +14,11 @@ const error = ref("");
 const authStore = useAuthStore();
 const router = useRouter();
 
-// Folder functions remain the same
+// State for rating editing
+const editingBookmark = ref(null); // Tracks which bookmark is being edited (recipeId)
+const tempRating = ref(1); // Temporary rating during editing, defaults to 1
+
+// Folder functions remain unchanged
 const fetchFolders = async () => {
   try {
     const { data } = await api.get("/user/folders");
@@ -61,7 +65,7 @@ const renameFolder = async (folderId, currentName) => {
   }
 };
 
-// Bookmark functions remain the same
+// Bookmark functions
 const fetchBookmarks = async () => {
   try {
     const { data } = await api.get("/user/bookmarks");
@@ -71,18 +75,32 @@ const fetchBookmarks = async () => {
   }
 };
 
-const updateBookmarkRating = async (folderId, recipeId, currentRating) => {
-  const newRating = prompt("Enter new rating (1-5):", currentRating);
-  if (newRating !== null && newRating >= 1 && newRating <= 5) {
-    try {
-      await api.put(`/user/bookmarks/${folderId}/${recipeId}`, {
-        rating: Number(newRating),
-      });
-      await fetchBookmarks();
-    } catch (err) {
-      error.value = err.response?.data?.error || "Failed to update rating.";
-    }
+// Toggle editing mode and set initial tempRating
+const toggleEditRating = (recipeId, currentRating) => {
+  if (editingBookmark.value === recipeId) {
+    editingBookmark.value = null; // Close if already editing
+  } else {
+    editingBookmark.value = recipeId;
+    tempRating.value = currentRating || 1; // Default to 1 if no rating
   }
+};
+
+// Update rating with selected stars
+const updateBookmarkRating = async (folderId, recipeId) => {
+  try {
+    await api.put(`/user/bookmarks/${folderId}/${recipeId}`, {
+      rating: tempRating.value,
+    });
+    await fetchBookmarks();
+    editingBookmark.value = null; // Close editing mode after saving
+  } catch (err) {
+    error.value = err.response?.data?.error || "Failed to update rating.";
+  }
+};
+
+// Set temporary rating when clicking a star
+const setRating = (value) => {
+  tempRating.value = value;
 };
 
 const removeBookmark = async (folderId, recipeId) => {
@@ -109,7 +127,6 @@ const getSuggestions = async (folderId) => {
   }
 };
 
-// Updated click handler for recommendations
 const showRecipeDetail = (recipeId) => {
   router.push({ query: { recipe: recipeId } });
 };
@@ -127,7 +144,7 @@ onMounted(() => {
   <div class="max-w-4xl mx-auto p-6">
     <h1 class="text-3xl font-bold mb-8">Your Profile</h1>
 
-    <!-- Folder Creation Section (unchanged) -->
+    <!-- Folder Creation Section -->
     <div class="mb-8">
       <h2 class="text-xl font-semibold mb-4">Manage Folders</h2>
       <div class="flex gap-4">
@@ -146,7 +163,7 @@ onMounted(() => {
       <p v-if="error" class="text-red-500 mt-2">{{ error }}</p>
     </div>
 
-    <!-- Folders List (unchanged) -->
+    <!-- Folders List -->
     <div class="mb-8">
       <h3 class="text-lg font-semibold mb-4">Your Folders</h3>
       <div v-if="folders.length === 0" class="text-gray-500">
@@ -214,25 +231,42 @@ onMounted(() => {
                   </p>
                 </div>
               </div>
-              <div class="flex gap-2">
-                <button
-                  @click="
-                    updateBookmarkRating(
-                      folder.folderId,
-                      bm.recipeId,
-                      bm.rating
-                    )
-                  "
-                  class="px-2 py-1 text-sm bg-yellow-500 text-black rounded"
-                >
-                  <p class="text-sm">Edit Rating</p>
-                </button>
+              <div>
+                <div class="flex gap-2">
+                <div class="flex flex-col items-end">
+                  <button
+                    @click="toggleEditRating(bm.recipeId, bm.rating)"
+                    class="px-2 py-1 text-sm bg-yellow-500 text-black rounded"
+                  >
+                    <p class="text-sm">Edit Rating</p>
+                  </button>
+                  
+                </div>
                 <button
                   @click="removeBookmark(folder.folderId, bm.recipeId)"
                   class="px-2 py-1 text-sm bg-red-500 text-black rounded"
                 >
                   <p class="text-sm">Remove</p>
                 </button>
+              </div>
+              
+                <!-- Star rating editor appears below the button -->
+                <div
+                    v-if="editingBookmark === bm.recipeId"
+                    class="mt-2 flex gap-1"
+                  >
+                    <span
+                      v-for="star in 5"
+                      :key="star"
+                      @click="setRating(star); updateBookmarkRating(folder.folderId, bm.recipeId)"
+                      class="cursor-pointer text-xl"
+                      :class="
+                        star <= tempRating ? 'text-yellow-400' : 'text-gray-300'
+                      "
+                    >
+                      ★
+                    </span>
+                  </div>
               </div>
             </div>
           </div>

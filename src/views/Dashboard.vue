@@ -21,7 +21,7 @@ const openRecipe = (recipeId) => {
 
 onMounted(async () => {
   try {
-    // Original featured recipes fetch
+    // Fetch featured recipes (Latest Recipes)
     const featuredResponse = await api.get('/recipes');
     featuredRecipes.value = featuredResponse.data.map(recipe => ({
       id: recipe.id,
@@ -31,8 +31,8 @@ onMounted(async () => {
       images: recipe.images || [],
     }));
 
-    // New recommendations fetch
-    const recommendationsResponse = await api.get('/user/recommendations');
+    // Fetch recommendations with "Food" folder specified
+    const recommendationsResponse = await api.get('/user/recommendations?folder_name=Food');
     recommendations.value = recommendationsResponse.data;
   } catch (err) {
     error.value = err.response?.data?.error || 'Failed to load content. Please try again later.';
@@ -50,7 +50,6 @@ onMounted(async () => {
     </div>
     <main class="pt-36">
       <div class="max-w-4xl mx-auto p-6">
-        <!-- Original Header -->
         <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">
           What to make this week, as chosen by readers!
         </h1>
@@ -58,19 +57,12 @@ onMounted(async () => {
         <!-- Loading State -->
         <div v-if="isLoading" class="text-center text-gray-600">
           <div class="animate-pulse space-y-6">
-            <div 
-              v-for="n in 5"
-              :key="n"
-              class="h-32 bg-gray-200 rounded-lg"
-            ></div>
+            <div v-for="n in 5" :key="n" class="h-32 bg-gray-200 rounded-lg"></div>
           </div>
         </div>
 
         <!-- Error State -->
-        <div 
-          v-else-if="error"
-          class="text-center p-6 bg-red-50 rounded-lg"
-        >
+        <div v-else-if="error" class="text-center p-6 bg-red-50 rounded-lg">
           <p class="text-red-600 font-medium">{{ error }}</p>
           <button
             @click="onMounted()"
@@ -81,177 +73,120 @@ onMounted(async () => {
         </div>
 
         <!-- Content Display -->
-        <div v-else>
-          <!-- Original Featured Recipes -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
-            <div 
-              v-for="recipe in featuredRecipes"
-              :key="recipe.id"
-              class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer mt-2"
-              @click="openRecipe(recipe.id)"
-            >
-              <div v-if="recipe.images.length && recipe.images[0] !== 'character(0'" class="relative h-48">
-                <img
-                  :src="recipe.images[0]"
-                  :alt="recipe.title"
-                  class="w-full h-full object-cover"
-                >
-              </div>
-              <div v-else class="h-48 bg-gray-100 flex flex-col items-center justify-center">
-                <img 
-                  src="../assets/noImg.jpg" 
-                  class="w-32 h-32 mb-2 opacity-75"
-                  alt="No image available"
-                >
-              </div>
-
-              <div class="p-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-2">
-                  {{ recipe.title }}
-                </h2>
-                <p class="text-gray-600 mb-4 line-clamp-3">
-                  {{ recipe.description }}
-                </p>
-                <div class="flex flex-wrap gap-2">
-                  <span
-                    v-for="(tag, index) in recipe.tags"
-                    :key="index"
-                    class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm"
+        <div v-else class="space-y-12">
+          <!-- New Discoveries For You -->
+          <section v-if="recommendations.randomDishes.length">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">New Discoveries For You</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div
+                v-for="recipe in recommendations.randomDishes"
+                :key="recipe.id"
+                class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                @click="openRecipe(recipe.id)"
+              >
+                <div v-if="recipe.images.length && recipe.images[0] !== 'character(0'" class="relative h-48">
+                  <img
+                    :src="recipe.images[0]"
+                    :alt="recipe.title"
+                    class="w-full h-full object-cover"
                   >
-                    {{ tag }}
-                  </span>
+                </div>
+                <div v-else class="h-48 bg-gray-100 flex items-center justify-center">
+                  <img src="../assets/noImg.jpg" class="w-32 h-32 opacity-75" alt="No image available">
+                </div>
+                <div class="p-6">
+                  <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ recipe.title }}</h3>
+                  <p class="text-gray-600 mb-4 line-clamp-3">{{ recipe.description }}</p>
+                  <div class="flex flex-wrap gap-2">
+                    <span
+                      v-for="(tag, index) in recipe.tags"
+                      :key="index"
+                      class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm"
+                    >
+                      {{ tag }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
-          <!-- Personalized Recommendations Sections -->
-          <div class="space-y-12 mt-12">
-            <!-- Summary from All Folders -->
-            <section v-if="recommendations.summary.length">
-              <h2 class="text-2xl font-bold text-gray-800 mb-6">From Your Collections</h2>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div 
-                  v-for="recipe in recommendations.summary" 
-                  :key="recipe.id"
-                  class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                  @click="openRecipe(recipe.id)"
-                >
-                  <div class="h-48 overflow-hidden">
-                    <img 
-                      v-if="recipe.images.length" 
-                      :src="recipe.images[0]" 
-                      :alt="recipe.title"
-                      class="w-full h-full object-cover"
-                    >
-                    <img 
-                      v-else 
-                      src="../assets/noImg.jpg" 
-                      class="w-full h-full object-cover opacity-75"
-                      alt="No image available"
-                    >
-                  </div>
-                  <div class="p-6">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ recipe.title }}</h3>
-                    <p class="text-gray-600 line-clamp-3 mb-4">{{ recipe.description }}</p>
-                    <div class="flex flex-wrap gap-2">
-                      <span
-                        v-for="(tag, index) in recipe.tags"
-                        :key="index"
-                        class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm"
-                      >
-                        {{ tag }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <!-- Random Category Section -->
-            <section v-if="recommendations.randomCategory.recipes.length">
-              <h2 class="text-2xl font-bold text-gray-800 mb-6">
-                From Your "{{ recommendations.randomCategory.folderName }}" Collection
-              </h2>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div 
-                  v-for="recipe in recommendations.randomCategory.recipes" 
-                  :key="recipe.id"
-                  class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                  @click="openRecipe(recipe.id)"
-                >
-                  <div class="h-48 overflow-hidden">
-                    <img 
-                      v-if="recipe.images.length" 
-                      :src="recipe.images[0]" 
-                      :alt="recipe.title"
-                      class="w-full h-full object-cover"
-                    >
-                    <img 
-                      v-else 
-                      src="../assets/noImg.jpg" 
-                      class="w-full h-full object-cover opacity-75"
-                      alt="No image available"
-                    >
-                  </div>
-                  <div class="p-6">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ recipe.title }}</h3>
-                    <p class="text-gray-600 line-clamp-3 mb-4">{{ recipe.description }}</p>
-                    <div class="flex flex-wrap gap-2">
-                      <span
-                        v-for="(tag, index) in recipe.tags"
-                        :key="index"
-                        class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm"
-                      >
-                        {{ tag }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <!-- Random Dishes Section -->
-            <section v-if="recommendations.randomDishes.length">
-              <h2 class="text-2xl font-bold text-gray-800 mb-6">New Discoveries For You</h2>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div 
-                  v-for="recipe in recommendations.randomDishes" 
-                  :key="recipe.id"
-                  class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                  @click="openRecipe(recipe.id)"
-                >
+          <!-- From Your "Food" Collection (Recommendations) -->
+          <section v-if="recommendations.randomCategory.recipes.length">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">
+              From Your "{{ recommendations.randomCategory.folderName }}" Collection
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div
+                v-for="recipe in recommendations.randomCategory.recipes"
+                :key="recipe.id"
+                class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                @click="openRecipe(recipe.id)"
+              >
                 <div v-if="recipe.images.length && recipe.images[0] !== 'character(0'" class="relative h-48">
-                <img
-                  :src="recipe.images[0]"
-                  :alt="recipe.title"
-                  class="w-full h-full object-cover"
-                >
-              </div>
-              <div v-else class="h-48 bg-gray-100 flex flex-col items-center justify-center">
-                <img 
-                  src="../assets/noImg.jpg" 
-                  class="w-32 h-32 mb-2 opacity-75"
-                  alt="No image available"
-                >
-              </div>
-                  <div class="p-6">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ recipe.title }}</h3>
-                    <p class="text-gray-600 line-clamp-3 mb-4">{{ recipe.description }}</p>
-                    <div class="flex flex-wrap gap-2">
-                      <span
-                        v-for="(tag, index) in recipe.tags"
-                        :key="index"
-                        class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm"
-                      >
-                        {{ tag }}
-                      </span>
-                    </div>
+                  <img
+                    :src="recipe.images[0]"
+                    :alt="recipe.title"
+                    class="w-full h-full object-cover"
+                  >
+                </div>
+                <div v-else class="h-48 bg-gray-100 flex items-center justify-center">
+                  <img src="../assets/noImg.jpg" class="w-32 h-32 opacity-75" alt="No image available">
+                </div>
+                <div class="p-6">
+                  <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ recipe.title }}</h3>
+                  <p class="text-gray-600 mb-4 line-clamp-3">{{ recipe.description }}</p>
+                  <div class="flex flex-wrap gap-2">
+                    <span
+                      v-for="(tag, index) in recipe.tags"
+                      :key="index"
+                      class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm"
+                    >
+                      {{ tag }}
+                    </span>
                   </div>
                 </div>
               </div>
-            </section>
-          </div>
+            </div>
+          </section>
+
+          <!-- Latest Recipes (Always Show) -->
+          <section>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Latest Recipes</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div
+                v-for="recipe in featuredRecipes"
+                :key="recipe.id"
+                class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                @click="openRecipe(recipe.id)"
+              >
+                <div v-if="recipe.images.length && recipe.images[0] !== 'character(0'" class="relative h-48">
+                  <img
+                    :src="recipe.images[0]"
+                    :alt="recipe.title"
+                    class="w-full h-full object-cover"
+                  >
+                </div>
+                <div v-else class="h-48 bg-gray-100 flex items-center justify-center">
+                  <img src="../assets/noImg.jpg" class="w-32 h-32 opacity-75" alt="No image available">
+                </div>
+                <div class="p-6">
+                  <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ recipe.title }}</h3>
+                  <p class="text-gray-600 mb-4 line-clamp-3">{{ recipe.description }}</p>
+                  <div class="flex flex-wrap gap-2">
+                    <span
+                      v-for="(tag, index) in recipe.tags"
+                      :key="index"
+                      class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm"
+                    >
+                      {{ tag }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
         </div>
 
         <RecipeDetailModal v-if="$route.query.recipe" />
@@ -273,11 +208,7 @@ onMounted(async () => {
 }
 
 @keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: .5;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
 }
 </style>
