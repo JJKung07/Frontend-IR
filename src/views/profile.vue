@@ -131,6 +131,11 @@ const showRecipeDetail = (recipeId) => {
   router.push({ query: { recipe: recipeId } });
 };
 
+const logoutAndRedirect = async () => {
+  await authStore.logout();
+  router.push("/login");
+};
+
 onMounted(() => {
   fetchFolders();
   fetchBookmarks();
@@ -322,12 +327,9 @@ onMounted(() => {
 
     <!-- Logout Button -->
     <div class="mt-8">
-      <button
-        @click="authStore.logout"
-        class="px-4 py-2 bg-red-500 text-black rounded"
-      >
-        Logout
-      </button>
+      <button @click="logoutAndRedirect" class="px-4 py-2 bg-red-500 text-black rounded">
+  Logout
+</button>
     </div>
   </div>
 </template>
