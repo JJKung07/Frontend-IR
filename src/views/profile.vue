@@ -18,7 +18,7 @@ const router = useRouter();
 const editingBookmark = ref(null); // Tracks which bookmark is being edited (recipeId)
 const tempRating = ref(1); // Temporary rating during editing, defaults to 1
 
-// Folder functions remain unchanged
+// Folder functions
 const fetchFolders = async () => {
   try {
     const { data } = await api.get("/user/folders");
@@ -175,7 +175,7 @@ onMounted(() => {
           :key="folder.id"
           class="flex items-center justify-between p-4 bg-gray-50 rounded"
         >
-          <span>{{ folder.name }}</span>
+          <span>{{ folder.name }} (Avg Rating : {{ folder.avg_rating.toFixed(1) || 'N/A' }})</span>
           <div class="flex gap-2">
             <button
               @click="renameFolder(folder.id, folder.name)"
@@ -206,7 +206,9 @@ onMounted(() => {
           :key="folder.folderId"
           class="bg-white p-4 rounded shadow"
         >
-          <h3 class="font-semibold mb-2">{{ folder.folderName }}</h3>
+          <h3 class="font-semibold mb-2">
+            {{ folder.folderName }} (Avg Rating : {{ folder.avg_rating.toFixed(1) || 'N/A' }})
+          </h3>
           <div class="space-y-2">
             <div
               v-for="bm in folder.bookmarks"
@@ -233,40 +235,38 @@ onMounted(() => {
               </div>
               <div>
                 <div class="flex gap-2">
-                <div class="flex flex-col items-end">
+                  <div class="flex flex-col items-end">
+                    <button
+                      @click="toggleEditRating(bm.recipeId, bm.rating)"
+                      class="px-2 py-1 text-sm bg-yellow-500 text-black rounded"
+                    >
+                      <p class="text-sm">Edit Rating</p>
+                    </button>
+                  </div>
                   <button
-                    @click="toggleEditRating(bm.recipeId, bm.rating)"
-                    class="px-2 py-1 text-sm bg-yellow-500 text-black rounded"
+                    @click="removeBookmark(folder.folderId, bm.recipeId)"
+                    class="px-2 py-1 text-sm bg-red-500 text-black rounded"
                   >
-                    <p class="text-sm">Edit Rating</p>
+                    <p class="text-sm">Remove</p>
                   </button>
-                  
                 </div>
-                <button
-                  @click="removeBookmark(folder.folderId, bm.recipeId)"
-                  class="px-2 py-1 text-sm bg-red-500 text-black rounded"
-                >
-                  <p class="text-sm">Remove</p>
-                </button>
-              </div>
-              
                 <!-- Star rating editor appears below the button -->
                 <div
-                    v-if="editingBookmark === bm.recipeId"
-                    class="mt-2 flex gap-1"
+                  v-if="editingBookmark === bm.recipeId"
+                  class="mt-2 flex gap-1"
+                >
+                  <span
+                    v-for="star in 5"
+                    :key="star"
+                    @click="setRating(star); updateBookmarkRating(folder.folderId, bm.recipeId)"
+                    class="cursor-pointer text-xl"
+                    :class="
+                      star <= tempRating ? 'text-yellow-400' : 'text-gray-300'
+                    "
                   >
-                    <span
-                      v-for="star in 5"
-                      :key="star"
-                      @click="setRating(star); updateBookmarkRating(folder.folderId, bm.recipeId)"
-                      class="cursor-pointer text-xl"
-                      :class="
-                        star <= tempRating ? 'text-yellow-400' : 'text-gray-300'
-                      "
-                    >
-                      ★
-                    </span>
-                  </div>
+                    ★
+                  </span>
+                </div>
               </div>
             </div>
           </div>

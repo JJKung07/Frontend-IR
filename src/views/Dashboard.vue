@@ -45,9 +45,12 @@ onMounted(async () => {
 
 <template>
   <div>
-    <div class="px-6 pt-8">
-      <SearchBar class="w-full" />
-    </div>
+    <header class="fixed top-0 left-0 right-0 z-50 shadow-md">
+      <div class="px-6 py-4">
+        <SearchBar class="w-full" />
+      </div>
+    </header>
+  
     <main class="pt-36">
       <div class="max-w-4xl mx-auto p-6">
         <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">
