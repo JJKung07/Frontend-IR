@@ -76,7 +76,7 @@ const openRecipe = (recipeId) => {
           Did you mean:
           <a
             @click.prevent="useSuggestion"
-            class="text-rose-600 hover:underline cursor-pointer"
+            class="text-black hover:underline cursor-pointer "
             >{{ suggestion.text }}</a
           >?
         </div>
@@ -117,7 +117,7 @@ const openRecipe = (recipeId) => {
             <button
               @click="handlePageChange(page - 1)"
               :disabled="page <= 1"
-              class="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              class="px-4 py-2 bg-rose-600 text-black rounded-lg hover:bg-rose-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
               Previous
             </button>
@@ -127,7 +127,7 @@ const openRecipe = (recipeId) => {
             <button
               @click="handlePageChange(page + 1)"
               :disabled="page >= totalPages"
-              class="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              class="px-4 py-2 bg-rose-600 text-black rounded-lg hover:bg-rose-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
               Next
             </button>

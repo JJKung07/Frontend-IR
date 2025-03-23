@@ -1,16 +1,20 @@
-<!-- Profile.vue -->
 <script setup>
 import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import api from "../config/api";
 import SearchBar from "./component/Searchbar.vue";
-import { useAuthStore } from '../stores/auth'; // Import the auth store
+import { useAuthStore } from "../stores/auth";
+import RecipeDetailModal from "./RecipeDetail.vue";
 
 const folders = ref([]);
 const newFolderName = ref("");
 const bookmarks = ref([]);
+const recommendations = ref({});
 const error = ref("");
-const authStore = useAuthStore(); // Initialize the auth store
+const authStore = useAuthStore();
+const router = useRouter();
 
+// Folder functions remain the same
 const fetchFolders = async () => {
   try {
     const { data } = await api.get("/user/folders");
@@ -51,12 +55,13 @@ const updateFolder = async (folderId, newName) => {
 };
 
 const renameFolder = async (folderId, currentName) => {
-  const newName = prompt('Enter new name:', currentName);
-  if (newName !== null && newName.trim() !== '') {
+  const newName = prompt("Enter new name:", currentName);
+  if (newName !== null && newName.trim() !== "") {
     await updateFolder(folderId, newName.trim());
   }
 };
 
+// Bookmark functions remain the same
 const fetchBookmarks = async () => {
   try {
     const { data } = await api.get("/user/bookmarks");
@@ -67,10 +72,12 @@ const fetchBookmarks = async () => {
 };
 
 const updateBookmarkRating = async (folderId, recipeId, currentRating) => {
-  const newRating = prompt('Enter new rating (1-5):', currentRating);
+  const newRating = prompt("Enter new rating (1-5):", currentRating);
   if (newRating !== null && newRating >= 1 && newRating <= 5) {
     try {
-      await api.put(`/user/bookmarks/${folderId}/${recipeId}`, { rating: Number(newRating) });
+      await api.put(`/user/bookmarks/${folderId}/${recipeId}`, {
+        rating: Number(newRating),
+      });
       await fetchBookmarks();
     } catch (err) {
       error.value = err.response?.data?.error || "Failed to update rating.";
@@ -88,6 +95,25 @@ const removeBookmark = async (folderId, recipeId) => {
   }
 };
 
+const getSuggestions = async (folderId) => {
+  try {
+    const { data } = await api.get(`/user/folders/${folderId}/suggestions`);
+    recommendations.value[folderId] = data;
+  } catch (err) {
+    if (err.response && err.response.status === 400) {
+      alert(err.response.data.error);
+    } else {
+      console.error("Failed to get suggestions:", err);
+      error.value = "Failed to load suggestions.";
+    }
+  }
+};
+
+// Updated click handler for recommendations
+const showRecipeDetail = (recipeId) => {
+  router.push({ query: { recipe: recipeId } });
+};
+
 onMounted(() => {
   fetchFolders();
   fetchBookmarks();
@@ -101,7 +127,7 @@ onMounted(() => {
   <div class="max-w-4xl mx-auto p-6">
     <h1 class="text-3xl font-bold mb-8">Your Profile</h1>
 
-    <!-- Folder Creation -->
+    <!-- Folder Creation Section (unchanged) -->
     <div class="mb-8">
       <h2 class="text-xl font-semibold mb-4">Manage Folders</h2>
       <div class="flex gap-4">
@@ -120,7 +146,7 @@ onMounted(() => {
       <p v-if="error" class="text-red-500 mt-2">{{ error }}</p>
     </div>
 
-    <!-- Folders List -->
+    <!-- Folders List (unchanged) -->
     <div class="mb-8">
       <h3 class="text-lg font-semibold mb-4">Your Folders</h3>
       <div v-if="folders.length === 0" class="text-gray-500">
@@ -151,7 +177,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Bookmarks -->
+    <!-- Bookmarks Section -->
     <div>
       <h2 class="text-xl font-semibold mb-4">Your Bookmarks</h2>
       <div v-if="bookmarks.length === 0" class="text-gray-500">
@@ -172,8 +198,13 @@ onMounted(() => {
             >
               <div class="flex items-center gap-4">
                 <img
-                  v-if="bm.image && bm.image !== 'character(0)'"
+                  v-if="bm.image && bm.image !== 'character(0'"
                   :src="bm.image"
+                  class="w-16 h-16 object-cover rounded"
+                />
+                <img
+                  v-else
+                  src="../assets/noImg.jpg"
                   class="w-16 h-16 object-cover rounded"
                 />
                 <div>
@@ -185,18 +216,60 @@ onMounted(() => {
               </div>
               <div class="flex gap-2">
                 <button
-                  @click="updateBookmarkRating(folder.folderId, bm.recipeId, bm.rating)"
+                  @click="
+                    updateBookmarkRating(
+                      folder.folderId,
+                      bm.recipeId,
+                      bm.rating
+                    )
+                  "
                   class="px-2 py-1 text-sm bg-yellow-500 text-black rounded"
                 >
-                <p class="text-sm">Edit Rating</p>
-                  
+                  <p class="text-sm">Edit Rating</p>
                 </button>
                 <button
                   @click="removeBookmark(folder.folderId, bm.recipeId)"
                   class="px-2 py-1 text-sm bg-red-500 text-black rounded"
                 >
-                <p class="text-sm">Remove</p>
+                  <p class="text-sm">Remove</p>
                 </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recommendations Section -->
+          <button
+            @click="getSuggestions(folder.folderId)"
+            :disabled="folder.bookmarks.length === 0"
+            class="mt-4 px-4 py-2 bg-green-500 text-black rounded"
+          >
+            Get Suggestions
+          </button>
+          <div v-if="recommendations[folder.folderId]" class="mt-4">
+            <h4 class="font-semibold mb-2">Recommendations:</h4>
+            <div
+              v-for="rec in recommendations[folder.folderId]"
+              :key="rec.id"
+              @click="showRecipeDetail(rec.id)"
+              class="flex items-center gap-4 p-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100"
+            >
+              <img
+                v-if="
+                  rec.images &&
+                  rec.images[0] &&
+                  rec.images[0] !== 'character(0'
+                "
+                :src="rec.images[0]"
+                class="w-16 h-16 object-cover rounded"
+              />
+              <img
+                v-else
+                src="../assets/noImg.jpg"
+                class="w-16 h-16 object-cover rounded"
+              />
+              <div>
+                <p class="font-medium">{{ rec.name }}</p>
+                <p class="text-sm text-gray-600">{{ rec.description }}</p>
               </div>
             </div>
           </div>
@@ -204,9 +277,21 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- Recipe Detail Modal -->
+    <div
+      v-if="$route.query.recipe"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      @click.self="router.replace({ query: {} })"
+    >
+      <RecipeDetailModal />
+    </div>
+
     <!-- Logout Button -->
     <div class="mt-8">
-      <button @click="authStore.logout" class="px-4 py-2 bg-red-500 text-black rounded">
+      <button
+        @click="authStore.logout"
+        class="px-4 py-2 bg-red-500 text-black rounded"
+      >
         Logout
       </button>
     </div>

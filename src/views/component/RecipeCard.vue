@@ -26,9 +26,9 @@ const getSnippet = () => {
         v-if="recipe.image"
         :src="recipe.image"
         :alt="recipe.name"
-        class="w-full h-32 object-cover rounded-lg"
+        class="w-full h-48 object-cover rounded-lg"
       />
-      <div v-else class="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
+      <div v-else class="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
         No Image
       </div>
     </div>
